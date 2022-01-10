@@ -5,7 +5,7 @@ namespace Assignment_2C2P.Repositories
 {
     public class InvoiceRepositories
     {
-        private readonly Assignment_2C2PContext _ctx;
+        private readonly Assignment_2C2PContext _ctx;   
         public InvoiceRepositories(Assignment_2C2PContext ctx)
         {
             _ctx = ctx;

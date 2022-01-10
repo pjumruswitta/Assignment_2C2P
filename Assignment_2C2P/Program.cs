@@ -1,4 +1,5 @@
-using Assignment_2C2P.Data.Invoice;
+using Assignment_2C2P.Models;
+using Assignment_2C2P.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<Assignment_2C2PContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("InvoiceConnection")));
+
+builder.Services.AddScoped<IInvoiceServices, InvoiceServices>();
 
 var app = builder.Build();
 
