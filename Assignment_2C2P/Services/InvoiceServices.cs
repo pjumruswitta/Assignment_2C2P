@@ -5,7 +5,7 @@ namespace Assignment_2C2P.Services
 {
     public interface IInvoiceServices
     {
-        public Task<List<InvoiceTransactionResponse>> GetInvoices();
+        public Task<List<InvoiceTransactionResponse>> GetInvoices(INVOICE_SEARCH_MODE mode, InvoiceSearchRequest request);
     }
 
     public class InvoiceServices : IInvoiceServices
@@ -18,25 +18,51 @@ namespace Assignment_2C2P.Services
             this._invoiceRepo = new InvoiceRepositories(invoiceContext);
         }
 
-        public async Task<List<InvoiceTransactionResponse>> GetInvoices()
+        public async Task<List<InvoiceTransactionResponse>> GetInvoices(INVOICE_SEARCH_MODE mode, InvoiceSearchRequest request)
         {
-            var result = new List<InvoiceTransactionResponse>();
-
-            var rawInvoiceTransactions = await _invoiceRepo.GetAllInvoiceTransactions();
-            if (rawInvoiceTransactions.Any())
+            try
             {
-                rawInvoiceTransactions.ForEach(transaction =>
-                {
-                    result.Add(new InvoiceTransactionResponse()
-                    {
-                        Id = transaction.TransactionId,
-                        Payment = $"{transaction.Amount} {transaction.Currency}",
-                        Status = DisplayStatusMapping(transaction.Status)
-                    });
-                });
-            }
+                var result = new List<InvoiceTransactionResponse>();
 
-            return result;
+                List<InvoiceTransaction> rawInvoiceTransactions;
+
+                switch (mode)
+                {
+                    case INVOICE_SEARCH_MODE.CURRENCY:
+                        rawInvoiceTransactions = await _invoiceRepo.GetInvoiceTransactionsByCurrency(request.Currency.ToUpper());
+                        break;
+                    case INVOICE_SEARCH_MODE.DATE_RANGE:
+                        rawInvoiceTransactions = await _invoiceRepo.GetInvoiceTransactionsByDateRange(request.DateFrom, request.DateTo);
+                        break;
+                    case INVOICE_SEARCH_MODE.STATUS:
+                        if (!InvoiceConstant.INV_STATUS_LIST.Contains(request.Status.ToUpper()))
+                            throw new ArgumentOutOfRangeException("Invalid SearchStaus for InvoiceTransaction");
+                        rawInvoiceTransactions = await _invoiceRepo.GetInvoiceTransactionsByStatus(request.Status.ToUpper());
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(mode), "Invalid SearchMode for InvoiceTransaction");
+                }
+
+                if (rawInvoiceTransactions.Any())
+                {
+                    rawInvoiceTransactions.ForEach(transaction =>
+                    {
+                        result.Add(new InvoiceTransactionResponse()
+                        {
+                            Id = transaction.TransactionId,
+                            Payment = $"{transaction.Amount} {transaction.Currency}",
+                            Status = DisplayStatusMapping(transaction.Status)
+                        });
+                    });
+                }
+
+                return result;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
         private string DisplayStatusMapping(string input)
@@ -55,5 +81,6 @@ namespace Assignment_2C2P.Services
                     return input;
             }
         }
+
     }
 }
