@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Assignment_2C2P.Data.Invoice
+namespace Assignment_2C2P.Models
 {
     public partial class InvoiceTransaction
     {

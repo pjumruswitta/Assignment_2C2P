@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace Assignment_2C2P.Data.Invoice
+namespace Assignment_2C2P.Models
 {
     public partial class Assignment_2C2PContext : DbContext
     {
