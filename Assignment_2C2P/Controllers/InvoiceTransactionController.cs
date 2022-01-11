@@ -21,32 +21,31 @@ namespace Assignment_2C2P.Controllers
 
         [HttpGet]
         [Route("Status")]
-        public async Task<List<InvoiceTransactionResponse>> GetInvoiceByStatus(string status = InvoiceConstant.INV_STATUS_APPROVED)
+        public async Task<IActionResult> GetInvoiceByStatus(string status = InvoiceConstant.INV_STATUS_APPROVED)
         {
             if (string.IsNullOrWhiteSpace(status))
-                throw new ArgumentNullException(nameof(status), "Status is required, [Approved, Failed, Rejected, Finished, Done]");
-            return await _invoiceService.GetInvoicesTransaction(INVOICE_SEARCH_MODE.STATUS, new InvoiceSearchRequest { Status = status });
+                return BadRequest("Status is required, [Approved, Failed, Rejected, Finished, Done]");
+            return Ok(await _invoiceService.GetInvoicesTransaction(INVOICE_SEARCH_MODE.STATUS, new InvoiceSearchRequest { Status = status }));
         }
 
         [HttpGet]
         [Route("Currency")]
-        public async Task<List<InvoiceTransactionResponse>> GetInvoiceByCurrency(string currency = "USD")
+        public async Task<IActionResult> GetInvoiceByCurrency(string currency = "USD")
         {
-            return await _invoiceService.GetInvoicesTransaction(INVOICE_SEARCH_MODE.CURRENCY, new InvoiceSearchRequest { Currency = currency });
+            return Ok(await _invoiceService.GetInvoicesTransaction(INVOICE_SEARCH_MODE.CURRENCY, new InvoiceSearchRequest { Currency = currency }));
         }
 
         [HttpGet]
         [Route("DateRange")]
-        public async Task<List<InvoiceTransactionResponse>> GetInvoiceByDateRange(DateTime? dateFrom, DateTime? dateTo)
+        public async Task<IActionResult> GetInvoiceByDateRange(DateTime? dateFrom, DateTime? dateTo)
         {
-            if (!dateFrom.HasValue) throw new ArgumentNullException(nameof(dateTo), "DateFrom is required.");
-            if (!dateTo.HasValue) throw new ArgumentNullException(nameof(dateTo), "DateTo is required.");
-            return await _invoiceService.GetInvoicesTransaction(INVOICE_SEARCH_MODE.DATE_RANGE, new InvoiceSearchRequest { DateFrom = dateFrom.Value, DateTo = dateTo.Value });
+            if (!dateFrom.HasValue) return BadRequest("DateFrom is required.");
+            if (!dateTo.HasValue) return BadRequest("DateTo is required.");
+            return Ok(await _invoiceService.GetInvoicesTransaction(INVOICE_SEARCH_MODE.DATE_RANGE, new InvoiceSearchRequest { DateFrom = dateFrom.Value, DateTo = dateTo.Value }));
         }
 
         [HttpPost]
         [Route("Upload")]
-
         public async Task<IActionResult> Upload(IFormFile file)
         {
             try
@@ -100,6 +99,8 @@ namespace Assignment_2C2P.Controllers
 
                 if (validateResult.Count > 0)
                     return BadRequest(validateResult);
+
+                //TODO: Need to handle duplicate Transaction ID
                 await _invoiceService.InsertInvoiceTransaction(insertList);
                 return Ok();
             }
@@ -133,6 +134,21 @@ namespace Assignment_2C2P.Controllers
                         result.Add("Transaction PaymentDetails CurrencyCode is missing.");
                 }
 
+
+                if (result.Count > 0)
+                {
+                    result.Insert(0, $"Transaction ID: {input.Id}");
+                }
+            }
+
+            return result;
+        }
+        private List<string> ValidateCsvInput(Transaction input)
+        {
+            List<string> result = new List<string>();
+
+            if (input != null)
+            {
 
                 if (result.Count > 0)
                 {
