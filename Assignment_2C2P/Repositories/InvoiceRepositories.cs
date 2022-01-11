@@ -36,7 +36,7 @@ namespace Assignment_2C2P.Repositories
         }
 
 
-        public async void InsertInvoiceTransactions(List<InvoiceTransaction> input)
+        public async Task InsertInvoiceTransactions(List<InvoiceTransaction> input)
         {
             var transaction = _ctx.Database.BeginTransaction();
             try

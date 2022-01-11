@@ -5,7 +5,8 @@ namespace Assignment_2C2P.Services
 {
     public interface IInvoiceServices
     {
-        public Task<List<InvoiceTransactionResponse>> GetInvoices(INVOICE_SEARCH_MODE mode, InvoiceSearchRequest request);
+        public Task<List<InvoiceTransactionResponse>> GetInvoicesTransaction(INVOICE_SEARCH_MODE mode, InvoiceSearchRequest request);
+        public Task InsertInvoiceTransaction(List<InvoiceTransaction> input);
     }
 
     public class InvoiceServices : IInvoiceServices
@@ -18,7 +19,7 @@ namespace Assignment_2C2P.Services
             this._invoiceRepo = new InvoiceRepositories(invoiceContext);
         }
 
-        public async Task<List<InvoiceTransactionResponse>> GetInvoices(INVOICE_SEARCH_MODE mode, InvoiceSearchRequest request)
+        public async Task<List<InvoiceTransactionResponse>> GetInvoicesTransaction(INVOICE_SEARCH_MODE mode, InvoiceSearchRequest request)
         {
             try
             {
@@ -60,7 +61,17 @@ namespace Assignment_2C2P.Services
             }
             catch (Exception)
             {
-
+                throw;
+            }
+        }
+        public async Task InsertInvoiceTransaction(List<InvoiceTransaction> input)
+        {
+            try
+            {
+                await _invoiceRepo.InsertInvoiceTransactions(input);
+            }
+            catch (Exception)
+            {
                 throw;
             }
         }
