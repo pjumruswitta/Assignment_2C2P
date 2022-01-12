@@ -40,11 +40,11 @@ namespace Assignment_2C2P.Services
                         break;
                     case INVOICE_SEARCH_MODE.STATUS:
                         if (!InvoiceConstant.INV_STATUS_LIST.Contains(request.Status.ToUpper()))
-                            throw new ArgumentOutOfRangeException("Invalid SearchStaus for InvoiceTransaction");
+                            throw new AssignmentException("Invalid SearchStaus for InvoiceTransaction");
                         rawInvoiceTransactions = await _invoiceRepo.GetInvoiceTransactionsByStatus(request.Status.ToUpper());
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(mode), "Invalid SearchMode for InvoiceTransaction");
+                        throw new AssignmentException(nameof(mode), "Invalid SearchMode for InvoiceTransaction");
                 }
 
                 if (rawInvoiceTransactions.Any())
@@ -62,7 +62,7 @@ namespace Assignment_2C2P.Services
 
                 return result;
             }
-            catch (Exception)
+            catch
             {
                 throw;
             }
@@ -157,7 +157,7 @@ namespace Assignment_2C2P.Services
 
                 await _invoiceRepo.InsertInvoiceTransactions(insertList);
             }
-            catch (Exception)
+            catch
             {
                 throw;
             }
