@@ -41,12 +41,26 @@ namespace Assignment_2C2P.Repositories
             var transaction = _ctx.Database.BeginTransaction();
             try
             {
-                await _ctx.AddRangeAsync(input);
-                await _ctx.SaveChangesAsync();
+                //Check duplicate DATA
+                var inputIdList = input.Select(s => s.TransactionId);
+
+                var existingData = await _ctx.InvoiceTransactions
+                    .Where(i => inputIdList.Contains(i.TransactionId))
+                    .ToListAsync();
+                if (existingData != null && existingData.Count > 0)
+                {
+                    var existingTransactionId = existingData.Select(s => s.TransactionId).ToList();
+                    throw new AssignmentException($"Existing record founded. {string.Join(",", existingTransactionId)}");
+                }
+                else
+                {
+                    await _ctx.AddRangeAsync(input);
+                    await _ctx.SaveChangesAsync();
+                }
 
                 transaction.Commit();
             }
-            catch (Exception)
+            catch
             {
                 transaction.Rollback();
                 throw;

@@ -3,8 +3,6 @@ using Assignment_2C2P.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Xml;
-using System.Xml.Serialization;
 
 namespace Assignment_2C2P.Controllers
 {
@@ -50,114 +48,22 @@ namespace Assignment_2C2P.Controllers
         {
             try
             {
-                if (file == null)
-                    return BadRequest("file is required.");
-
-                var insertList = new List<InvoiceTransaction>();
-                var validateResult = new List<List<string>>();
-
-
-                if (file.ContentType.Equals("text/xml"))
-                {
-                    XmlSerializer serializer = new XmlSerializer(typeof(Transactions));
-                    using (XmlTextReader reader = new XmlTextReader(file.OpenReadStream()))
-                    {
-                        reader.WhitespaceHandling = WhitespaceHandling.None;
-                        reader.Read();
-                        Transactions? xmlResult = serializer.Deserialize(reader) as Transactions;
-                        if (xmlResult != null)
-                        {
-                            xmlResult.Transaction.ForEach(t =>
-                            {
-                                var validateResultItem = ValidateXmlInput(t);
-                                if (validateResultItem.Count > 0)
-                                    validateResult.Add(validateResultItem);
-                                else
-                                    insertList.Add(new InvoiceTransaction()
-                                    {
-                                        TransactionId = t.Id,
-                                        TransactionDate = t.TransactionDate.Value,
-                                        Amount = t.PaymentDetails.Amount.Value,
-                                        Currency = t.PaymentDetails.CurrencyCode,
-                                        InputType = "XML",
-                                        Status = t.Status,
-                                        CreatedDate = DateTime.Now,
-                                        IsActive = true
-                                    });
-                            });
-                        }
-                    }
-                }
-                else if (file.ContentType.Equals("text/csv"))
-                {
-
-                }
-                else
-                {
-                    return BadRequest("Unknown format");
-                }
-
-                if (validateResult.Count > 0)
-                    return BadRequest(validateResult);
-
-                //TODO: Need to handle duplicate Transaction ID
-                await _invoiceService.InsertInvoiceTransaction(insertList);
+                await _invoiceService.InsertInvoiceTransaction(file);
                 return Ok();
             }
-            catch (Exception ex)
+            catch (AssignmentException ex)
             {
-                return BadRequest("Sorry, something went wrong.");
+                if(ex.ExceptionData != null) 
+                    return BadRequest(ex.ExceptionData);
+
+                return BadRequest(ex.Message);
+            }
+            catch
+            {
+                return BadRequest("Something went wrong.");
             }
         }
 
-        private List<string> ValidateXmlInput(Transaction input)
-        {
-            List<string> result = new List<string>();
-
-            if (input != null)
-            {
-                if (string.IsNullOrWhiteSpace(input.Id))
-                    result.Add("Transaction ID is missing.");
-                if (string.IsNullOrWhiteSpace(input.Status))
-                    result.Add("Transaction Status is missing.");
-                if (input.TransactionDate == null)
-                    result.Add("Transaction Date is missing.");
-                if (input.PaymentDetails == null)
-                {
-                    result.Add("Transaction PaymentDetails is missing.");
-                }
-                else
-                {
-                    if (input.PaymentDetails.Amount == null)
-                        result.Add("Transaction PaymentDetails Amount is missing.");
-                    if (string.IsNullOrWhiteSpace(input.PaymentDetails.CurrencyCode))
-                        result.Add("Transaction PaymentDetails CurrencyCode is missing.");
-                }
-
-
-                if (result.Count > 0)
-                {
-                    result.Insert(0, $"Transaction ID: {input.Id}");
-                }
-            }
-
-            return result;
-        }
-        private List<string> ValidateCsvInput(Transaction input)
-        {
-            List<string> result = new List<string>();
-
-            if (input != null)
-            {
-
-                if (result.Count > 0)
-                {
-                    result.Insert(0, $"Transaction ID: {input.Id}");
-                }
-            }
-
-            return result;
-        }
     }
 
 }
